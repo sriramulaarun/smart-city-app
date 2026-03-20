@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section text-center text-white py-5 px-3 mb-5 mt-n5 mx-n3 position-relative">
+    <div class="position-absolute align-items-center justify-content-center" style="top: 10%; right: 10%; opacity: 0.1;">
+        <i class="fa-solid fa-city fa-10x"></i>
+    </div>
+    <div class="container py-5 mt-4 position-relative z-1 animate-slide-up">
+        <div class="d-inline-flex align-items-center bg-white bg-opacity-10 rounded-pill px-3 py-2 mb-4">
+            <span class="badge bg-primary rounded-pill me-2">New</span>
+            <span class="small fw-semibold">Community Hub v2.0 is live!</span>
+        </div>
+        <h1 class="display-3 fw-bold mb-3 tracking-tight">Smart City <span class="text-gradient">Solutions</span></h1>
+        <p class="lead mb-4 fw-normal text-white-50 mx-auto" style="max-width: 600px;">
+            Empower your community. Report local issues instantly, track resolutions in real-time, and make your neighborhood a better place to live.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="/report" class="btn btn-primary btn-lg shadow-lg">
+                Report Issue <i class="fa-solid fa-arrow-right ms-2"></i>
+            </a>
+            <a href="/track" class="btn btn-light btn-lg text-dark fw-bold">
+                Track Status
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container mb-5">
+    <div class="text-center mb-5 animate-slide-up" style="animation-delay: 0.1s;">
+        <h2 class="fw-bold fs-1 text-dark">Why use Community Hub?</h2>
+        <p class="text-muted fs-5">Designed for citizens, built for impact.</p>
+    </div>
+    <div class="row g-4 justify-content-center animate-slide-up" style="animation-delay: 0.2s;">
+        <!-- Feature 1 -->
+        <div class="col-md-4">
+            <div class="card h-100 text-center border-0 p-4">
+                <div class="card-body">
+                    <div class="icon-box">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <h4 class="card-title fw-bold mb-3">Lightning Fast</h4>
+                    <p class="card-text text-muted">Submit reports in under 30 seconds with our optimized and intuitive forms.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Feature 2 -->
+        <div class="col-md-4">
+            <div class="card h-100 text-center border-0 p-4">
+                <div class="card-body">
+                    <div class="icon-box" style="background: #ecfeff; color: #06b6d4;">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                    </div>
+                    <h4 class="card-title fw-bold mb-3">Live Tracking</h4>
+                    <p class="card-text text-muted">Watch your report move from Pending to Resolved with transparent real-time updates.</p>
+                </div>
+            </div>
+        </div>
+        <!-- Feature 3 -->
+        <div class="col-md-4">
+            <div class="card h-100 text-center border-0 p-4">
+                <div class="card-body">
+                    <div class="icon-box" style="background: #fdf4ff; color: #d946ef;">
+                        <i class="fa-solid fa-chart-pie"></i>
+                    </div>
+                    <h4 class="card-title fw-bold mb-3">Open Data</h4>
+                    <p class="card-text text-muted">We believe in transparency. View anonymous public analytics on neighborhood issues.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="container py-5 mb-5 rounded-4" style="background-color: var(--card-bg); box-shadow: var(--shadow-sm); border: 1px solid rgba(226, 232, 240, 0.8);">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold fs-2 text-dark">Simple 3-Step Process</h2>
+    </div>
+    
+    <div class="row g-4 text-center">
+        <!-- Step 1 -->
+        <div class="col-md-4 position-relative">
+            <div class="bg-primary text-white fs-3 d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow" style="width: 60px; height: 60px; z-index: 2; position: relative;">
+                1
+            </div>
+            <h5 class="fw-bold">Snap & Submit</h5>
+            <p class="text-muted small px-3">See a pothole or broken streetlight? Type what you see, categorize it, and submit the report.</p>
+        </div>
+        
+        <!-- Step 2 -->
+        <div class="col-md-4 position-relative">
+            <div class="bg-primary text-white fs-3 d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow" style="width: 60px; height: 60px; z-index: 2; position: relative;">
+                2
+            </div>
+            <h5 class="fw-bold">City Review</h5>
+            <p class="text-muted small px-3">Our backend routes your request directly to the appropriate city maintenance department.</p>
+        </div>
+        
+        <!-- Step 3 -->
+        <div class="col-md-4">
+            <div class="bg-primary text-white fs-3 d-inline-flex align-items-center justify-content-center rounded-circle mb-3 shadow" style="width: 60px; height: 60px; z-index: 2; position: relative;">
+                3
+            </div>
+            <h5 class="fw-bold">Resolution</h5>
+            <p class="text-muted small px-3">Get instantly notified via email or check the Track page when the issue is resolved.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

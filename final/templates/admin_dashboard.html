@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row pt-4 mb-4 animate-slide-up align-items-center">
+    <div class="col-12 col-md-8 text-center text-md-start">
+        <h2 class="text-dark fw-bold m-0"><i class="fa-solid fa-clipboard-list text-primary me-2"></i>Admin Dashboard</h2>
+        <p class="text-muted mt-1 mb-0">Manage and resolve reported city issues</p>
+    </div>
+    <div class="col-12 col-md-4 text-center text-md-end mt-3 mt-md-0">
+        <button onclick="adminLogout()" class="btn btn-outline-danger rounded-pill fw-bold transition-all hover-scale px-4">
+            <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Sign Out
+        </button>
+    </div>
+</div>
+
+<div class="row g-4 mb-5 animate-slide-up" style="animation-delay: 0.1s;">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden position-relative" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+            <div class="position-absolute end-0 top-0 p-3 opacity-10">
+                <i class="fa-solid fa-file-invoice text-white fa-4x" style="transform: rotate(15deg);"></i>
+            </div>
+            <div class="card-body p-4 position-relative z-1 text-white">
+                <p class="text-white-50 fw-bold mb-2 text-uppercase small tracking-wide">Total Reports</p>
+                <h3 class="display-5 fw-bold mb-0" id="adminTotal">0</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden position-relative" style="background: linear-gradient(135deg, #198754 0%, #157347 100%);">
+            <div class="position-absolute end-0 top-0 p-3 opacity-10">
+                <i class="fa-solid fa-circle-check text-white fa-4x" style="transform: rotate(15deg);"></i>
+            </div>
+            <div class="card-body p-4 position-relative z-1 text-white">
+                <p class="text-white-50 fw-bold mb-2 text-uppercase small tracking-wide">Resolved</p>
+                <h3 class="display-5 fw-bold mb-0" id="adminResolved">0</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden position-relative" style="background: linear-gradient(135deg, #dc3545 0%, #bb2d3b 100%);">
+            <div class="position-absolute end-0 top-0 p-3 opacity-10">
+                <i class="fa-solid fa-clock text-white fa-4x" style="transform: rotate(15deg);"></i>
+            </div>
+            <div class="card-body p-4 position-relative z-1 text-white">
+                <p class="text-white-50 fw-bold mb-2 text-uppercase small tracking-wide">Pending</p>
+                <h3 class="display-5 fw-bold mb-0" id="adminPending">0</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row animate-slide-up" style="animation-delay: 0.2s;">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 rounded-4 bg-white">
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                    <h4 class="card-title fw-bold mb-0 text-dark"><i class="fa-solid fa-inbox text-secondary me-2"></i>Active Reports Queue</h4>
+                </div>
+                
+                <div id="adminReportsList" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    <div class="col-12 py-5 text-center w-100">
+                        <i class="fa-solid fa-circle-notch fa-spin fa-3x text-primary mb-3"></i>
+                        <p class="text-muted fw-bold">Loading queue...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function loadAdminDashboard(){
+  let isAdmin = localStorage.getItem("admin");
+  if(!isAdmin){
+    window.location.href = "/admin";
+    return;
+  }
+
+  fetch("/all_reports")
+  .then(res => res.json())
+  .then(data => {
+    // Reverse for newest first
+    data.reverse();
+    
+    let total = data.length;
+    let resolved = 0;
+    let pending = 0;
+    let container = document.getElementById("adminReportsList");
+    container.innerHTML = "";
+
+    if(total === 0) {
+        container.innerHTML = `<div class="col-12 text-center py-5"><p class="text-muted mb-0">No reports in the system.</p></div>`;
+    }
+
+    data.forEach((r, idx) => {
+      // r is [id, description, location, category, status, email]
+      if(r[4] === "Resolved") resolved++;
+      if(r[4] === "Pending") pending++;
+
+      let badgeClass = "bg-warning text-dark";
+      let icon = "fa-clock";
+      if(r[4] === "Resolved") { badgeClass = "bg-success text-white"; icon = "fa-check"; }
+      if(r[4] === "Pending") { badgeClass = "bg-danger text-white"; icon = "fa-triangle-exclamation"; }
+
+      let delay = (idx < 6) ? idx * 0.05 : 0; // Only animate first row
+
+      container.innerHTML += `
+        <div class="col" style="animation: slideUpFade 0.4s ease-out ${delay}s both;">
+            <div class="card h-100 shadow-sm border-0 bg-light rounded-4 position-relative transition-all hover-scale">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-white text-secondary border font-monospace tracking-wide shadow-sm px-2">#${r[0]}</span>
+                        <span class="badge ${badgeClass} px-3 py-2 rounded-pill shadow-sm"><i class="fa-solid ${icon} me-1"></i> ${r[4]}</span>
+                    </div>
+                    
+                    <h6 class="fw-bold text-dark mb-1">${r[3]}</h6>
+                    <p class="small text-muted mb-3"><i class="fa-solid fa-location-dot me-1"></i> ${r[2]}</p>
+                    
+                    <div class="bg-white p-3 rounded-3 shadow-sm border border-light mb-4 small flex-grow-1" style="min-height: 80px; max-height: 120px; overflow-y: auto;">
+                        ${r[1]}
+                    </div>
+                    
+                    <div class="mt-auto border-top border-secondary pt-3">
+                        <label class="form-label small fw-bold text-secondary text-uppercase tracking-wide mb-2"><i class="fa-solid fa-arrows-rotate me-1"></i> Update Status</label>
+                        <select class="form-select border-0 shadow-sm rounded-pill fw-medium cursor-pointer" onchange="updateStatus('${r[0]}', this.value)" style="background-color: var(--bs-white);">
+                            <option ${r[4]=='Pending'?'selected':''}>Pending</option>
+                            <option ${r[4]=='In Progress'?'selected':''}>In Progress</option>
+                            <option ${r[4]=='Resolved'?'selected':''}>Resolved</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+      `;
+    });
+
+    animateValue("adminTotal", parseInt(document.getElementById("adminTotal").innerText), total, 800);
+    animateValue("adminResolved", parseInt(document.getElementById("adminResolved").innerText), resolved, 800);
+    animateValue("adminPending", parseInt(document.getElementById("adminPending").innerText), pending, 800);
+  }).catch(() => {
+      document.getElementById("adminReportsList").innerHTML = `<div class="col-12 py-4">
+          <div class="alert alert-danger text-center shadow-sm border-0 rounded-3"><i class="fa-solid fa-triangle-exclamation me-2"></i>Failed to load dashboard data. Check server logs.</div>
+      </div>`;
+  });
+}
+
+function animateValue(id, start, end, duration) {
+    if (start === end) return;
+    let range = end - start;
+    let current = start;
+    let increment = end > start ? 1 : -1;
+    let stepTime = Math.abs(Math.floor(duration / range));
+    let obj = document.getElementById(id);
+    let timer = setInterval(function() {
+        current += increment;
+        obj.innerHTML = current;
+        if (current == end) {
+            clearInterval(timer);
+        }
+    }, stepTime);
+}
+
+function updateStatus(id, status){
+  fetch("/update_status", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({id: id, status: status})
+  })
+  .then(res => res.json())
+  .then(()=>{
+    // Just refresh data
+    loadAdminDashboard();
+  });
+}
+
+function adminLogout(){
+  localStorage.removeItem("admin");
+  window.location.href = "/admin";
+}
+
+loadAdminDashboard();
+</script>
+
+<style>
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.transition-all { transition: all 0.3s ease; }
+.hover-scale:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.08) !important; }
+.tracking-wide { letter-spacing: 0.05em; }
+.cursor-pointer { cursor: pointer; }
+</style>
+{% endblock %}

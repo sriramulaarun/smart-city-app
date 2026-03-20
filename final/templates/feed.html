@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row pt-4 mb-4 animate-slide-up">
+    <div class="col-12 text-center">
+        <h2 class="text-dark fw-bold m-0"><i class="fa-solid fa-users text-primary me-2"></i>Community Feed</h2>
+        <p class="text-muted mt-1 mb-0">Discover and support issues reported by your neighbors.</p>
+    </div>
+</div>
+
+<div class="row justify-content-center mb-5 animate-slide-up" style="animation-delay: 0.1s;">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold text-dark mb-0"><i class="fa-solid fa-fire text-danger me-2"></i>Trending Reports</h5>
+            <div class="btn-group shadow-sm">
+                <button class="btn btn-primary btn-sm px-3 fw-bold rounded-start-pill">Top Voted</button>
+                <button class="btn btn-light btn-sm px-3 fw-bold border text-muted rounded-end-pill">Newest</button>
+            </div>
+        </div>
+        
+        <div id="feedList">
+            <div class="text-center py-5">
+                <i class="fa-solid fa-circle-notch fa-spin fa-3x text-primary mb-3"></i>
+                <p class="text-muted fw-bold">Loading community feed...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function loadFeed() {
+    fetch("/all_reports")
+    .then(res => res.json())
+    .then(data => {
+        let container = document.getElementById("feedList");
+        container.innerHTML = "";
+        
+        // Filter out resolved, we only want active community issues to upvote
+        let activeReports = data.filter(r => r[4] !== "Resolved");
+        
+        // Sort by upvotes (descending)
+        activeReports.sort((a, b) => (b[6] || 0) - (a[6] || 0));
+
+        if(activeReports.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5 px-3 bg-white rounded-4 shadow-sm border border-light">
+                    <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3 text-success" style="width: 70px; height: 70px;">
+                        <i class="fa-solid fa-leaf fa-2x"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">All clear!</h5>
+                    <p class="text-muted mb-4">There are no active issues in the community feed right now.</p>
+                    <a href="/report" class="btn btn-primary rounded-pill px-4 shadow-sm">Report an Issue</a>
+                </div>`;
+            return;
+        }
+
+        activeReports.forEach((r, idx) => {
+            let delay = idx * 0.05;
+            let upvotes = r[6] || 0;
+            
+            container.innerHTML += `
+                <div class="card bg-white border-0 shadow-sm rounded-4 mb-4 transition-all hover-scale" style="animation: slideUpFade 0.4s ease-out ${delay}s both;">
+                    <div class="card-body p-4 d-flex gap-4 align-items-center">
+                        <!-- Upvote Column -->
+                        <div class="d-flex flex-column align-items-center justify-content-center bg-light rounded-4 px-3 py-3 border border-secondary-subtle" style="min-width: 80px;">
+                            <button onclick="upvote('${r[0]}')" class="btn btn-link text-muted p-0 border-0 hover-up text-decoration-none" title="Upvote this">
+                                <i class="fa-solid fa-caret-up fa-2x"></i>
+                            </button>
+                            <h4 class="fw-bold text-dark my-1" id="upvotes-${r[0]}">${upvotes}</h4>
+                        </div>
+                        
+                        <!-- Content Column -->
+                        <div class="flex-grow-1">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-2 me-2">${r[3]}</span>
+                                    <span class="badge bg-danger text-white rounded-pill px-2"><i class="fa-solid fa-clock me-1"></i> ${r[4]}</span>
+                                </div>
+                                <span class="text-muted small font-monospace">#${r[0]}</span>
+                            </div>
+                            
+                            <p class="mb-3 text-dark fs-5 fw-medium" style="line-height: 1.4;">"${r[1]}"</p>
+                            
+                            <div class="d-flex justify-content-between align-items-center border-top border-light pt-3">
+                                <p class="mb-0 small text-muted"><i class="fa-solid fa-location-dot text-secondary me-1"></i> ${r[2]}</p>
+                                
+                                <button onclick="upvote('${r[0]}')" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm hover-scale transition-all fw-bold">
+                                    <i class="fa-solid fa-thumbs-up me-1"></i> Agree
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    });
+}
+
+function upvote(id) {
+    fetch("/upvote_report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({id: id})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.upvotes) {
+            let el = document.getElementById("upvotes-" + id);
+            if(el) {
+                el.innerText = data.upvotes;
+                el.classList.add("text-primary");
+                el.classList.add("animate-pulse");
+                setTimeout(() => {
+                    el.classList.remove("text-primary");
+                    el.classList.remove("animate-pulse");
+                }, 1000);
+            }
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", loadFeed);
+</script>
+
+<style>
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+.animate-pulse { animation: pulse 0.3s ease-in-out; }
+.transition-all { transition: all 0.3s ease; }
+.hover-scale:hover { transform: translateY(-3px); box-shadow: 0 12px 24px rgba(0,0,0,0.06) !important; }
+.hover-up { transition: color 0.2s; }
+.hover-up:hover { color: var(--primary-color) !important; text-shadow: 0 2px 10px rgba(13, 110, 253, 0.4); }
+</style>
+{% endblock %}

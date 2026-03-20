@@ -1,0 +1,157 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-light: #e0e7ff;
+  --secondary: #0ea5e9;
+  --dark: #0f172a;
+  --text-main: #334155;
+  --text-muted: #64748b;
+  --bg-main: #f8fafc;
+  --card-bg: #ffffff;
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 10px 25px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 20px 40px -5px rgba(15, 23, 42, 0.08);
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 9999px;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  background-color: var(--bg-main) !important;
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ================= TYPOGRAPHY & GRADIENTS ================= */
+.text-primary { color: var(--primary) !important; }
+.bg-primary { background-color: var(--primary) !important; }
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-section {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 40px 40px !important;
+  box-shadow: var(--shadow-lg);
+}
+.hero-section::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -10%;
+  width: 50%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(79,70,229,0.15) 0%, transparent 70%);
+  transform: rotate(30deg);
+}
+
+/* ================= NAVBAR FLOATING GLASS ================= */
+.navbar {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+.navbar-brand {
+  color: var(--dark) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.5px;
+}
+.nav-link {
+  color: var(--text-muted) !important;
+  font-weight: 600 !important;
+  transition: color 0.2s ease;
+  padding: 0.5rem 1.2rem !important;
+  border-radius: var(--radius-pill);
+}
+.nav-link:hover {
+  color: var(--primary) !important;
+  background: var(--primary-light);
+}
+
+/* ================= CARDS & UI ELEMENTS ================= */
+.card {
+  background: var(--card-bg) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-sm) !important;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease !important;
+}
+.card:hover {
+  transform: translateY(-5px) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.btn {
+  font-weight: 600 !important;
+  letter-spacing: 0.3px;
+  padding: 0.6rem 1.5rem !important;
+  border-radius: var(--radius-pill) !important;
+  transition: all 0.3s ease !important;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--secondary)) !important;
+  border: none !important;
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3) !important;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4) !important;
+  filter: brightness(1.1);
+}
+
+/* Forms */
+.form-control, .form-select {
+  border-radius: var(--radius-md) !important;
+  border: 1px solid #cbd5e1 !important;
+  padding: 0.75rem 1rem !important;
+  font-size: 1rem !important;
+  transition: all 0.2s;
+  background-color: #f8fafc !important;
+}
+.form-control:focus, .form-select:focus {
+  background-color: #fff !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 4px var(--primary-light) !important;
+}
+
+/* Icons */
+.icon-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--primary-light);
+  color: var(--primary);
+  font-size: 28px;
+  margin-bottom: 20px;
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Utilities applied globally */
+main {
+  animation: slideUpFade 0.5s ease-out forwards;
+}

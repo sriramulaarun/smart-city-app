@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center py-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-md border-0 rounded-4 overflow-hidden mb-5">
+            <div class="bg-primary text-white p-4 text-center">
+                <h2 class="fw-bold mb-1"><i class="fa-solid fa-pen-to-square me-2"></i>Report Issue</h2>
+                <p class="mb-0 text-white-50">Help us keep the community clean and safe</p>
+            </div>
+            
+            <div class="card-body p-4 p-md-5">
+                <form id="reportForm" onsubmit="event.preventDefault(); submitReport();">
+                    
+                    <!-- Email Input -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary">Email Address</label>
+                        <div class="input-group input-group-lg shadow-sm">
+                            <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-envelope text-muted"></i></span>
+                            <input type="email" id="problemEmail" class="form-control border-start-0" placeholder="your@email.com" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Description Input -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary">Issue Description</label>
+                        <textarea id="problemDesc" class="form-control shadow-sm" rows="4" placeholder="Describe the problem in detail... (e.g., Deep pothole on Main St)" required></textarea>
+                        <div class="form-text mt-2"><i class="fa-solid fa-wand-magic-sparkles text-primary me-1"></i> Smart Categorization: We'll auto-detect the category as you type!</div>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <!-- Location Input -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary">Location</label>
+                            <div class="input-group shadow-sm">
+                                <input type="text" id="problemLocation" class="form-control" placeholder="123 Street Name" required>
+                                <button type="button" class="btn btn-outline-primary" onclick="getLiveLocation()" title="Get Current Location">
+                                    <i class="fa-solid fa-location-crosshairs"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Category Select -->
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary">Category</label>
+                            <select id="problemCategory" class="form-select shadow-sm" required>
+                                <option value="" disabled selected>Select Category</option>
+                                <option>Road Issue</option>
+                                <option>Water Problem</option>
+                                <option>Garbage Issue</option>
+                                <option>Streetlight Issue</option>
+                                <option>Public Toilet Issue</option>
+                                <option>Electricity Issue</option>
+                                <option>Vandalism / Security</option>
+                                <option>Animal Control</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Photo Upload -->
+                    <div class="mb-5">
+                        <label class="form-label fw-bold small text-secondary">Photo (Optional)</label>
+                        <input type="file" id="problemPhoto" class="form-control shadow-sm" accept="image/*">
+                        <img id="previewImg" class="img-fluid rounded-4 mt-3 shadow-sm d-none" style="max-height: 250px; object-fit: cover; width: 100%;">
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button type="submit" id="submitBtn" class="btn btn-primary w-100 py-3 fs-5 shadow-md">
+                        Submit Report <i class="fa-solid fa-paper-plane ms-2"></i>
+                    </button>
+                    
+                    <!-- Success Message Alert -->
+                    <div id="reportSuccess" class="alert alert-success mt-4 border-0 shadow-sm d-none animate-slide-up" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="fa-solid fa-circle-check fs-2 me-3"></i>
+                            <div>
+                                <h5 class="alert-heading fw-bold mb-1">Report Submitted!</h5>
+                                <p class="mb-0">Your tracking ID is: <strong id="trackingIdLabel" class="bg-white px-2 py-1 rounded"></strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Image Preview Logic
+document.getElementById("problemPhoto").addEventListener("change", function () {
+    let file = this.files[0];
+    let preview = document.getElementById("previewImg");
+    if (file) {
+        preview.src = URL.createObjectURL(file);
+        preview.classList.remove("d-none");
+    }
+});
+
+// Auto Location Logic
+function getLiveLocation() {
+    let locInput = document.getElementById("problemLocation");
+    
+    // Fallback nice string if location services take a while
+    locInput.value = "Fetching GPS...";
+    locInput.disabled = true;
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function (pos) {
+            let lat = pos.coords.latitude.toFixed(6);
+            let lon = pos.coords.longitude.toFixed(6);
+            locInput.value = lat + ", " + lon;
+            locInput.disabled = false;
+        }, function(err) {
+            locInput.value = "";
+            locInput.disabled = false;
+            alert("Could not detect location. Please type manually.");
+        });
+    } else {
+        alert("Location not supported by browser.");
+        locInput.value = "";
+        locInput.disabled = false;
+    }
+}
+
+// Smart Auto Category Logic
+document.getElementById("problemDesc").addEventListener("input", function () {
+    let text = this.value.toLowerCase();
+    let category = document.getElementById("problemCategory");
+    
+    const keywords = {
+        "Road Issue": ["road", "pothole", "street", "crack", "asphalt"],
+        "Water Problem": ["water", "leak", "flood", "pipe", "drain"],
+        "Garbage Issue": ["garbage", "trash", "dump", "litter", "rubbish"],
+        "Streetlight Issue": ["light", "bulb", "lamp"],
+        "Public Toilet Issue": ["toilet", "restroom", "bathroom", "washroom"],
+        "Electricity Issue": ["power", "electricity", "wire", "outage"],
+        "Vandalism / Security": ["vandalism", "graffiti", "damage", "break"],
+        "Animal Control": ["animal", "dog", "cat", "stray", "dead"]
+    };
+
+    for(let cat in keywords) {
+        if(keywords[cat].some(word => text.includes(word))) {
+            category.value = cat;
+            return;
+        }
+    }
+});
+
+// Submission Logic
+function submitReport() {
+    let email = document.getElementById("problemEmail").value;
+    let desc = document.getElementById("problemDesc").value;
+    let loc = document.getElementById("problemLocation").value;
+    let cat = document.getElementById("problemCategory").value;
+    let btn = document.getElementById("submitBtn");
+
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Submitting...';
+    btn.disabled = true;
+
+    fetch("/submit_report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            email: email,
+            description: desc,
+            location: loc,
+            category: cat
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        let box = document.getElementById("reportSuccess");
+        document.getElementById("trackingIdLabel").innerText = data.id;
+        box.classList.remove("d-none");
+        
+        try { navigator.clipboard.writeText(data.id); } catch(e){}
+
+        // Complete styling reset
+        btn.innerHTML = 'Report Submitted <i class="fa-solid fa-check ms-2"></i>';
+        btn.classList.replace("btn-primary", "btn-success");
+        
+        // Alert user of success and tracking ID, then refresh page
+        setTimeout(() => {
+            alert(`Report submitted successfully! Check your email for details.\nYour tracking ID is: ${data.id}`);
+            window.location.reload();
+        }, 500);
+    })
+    .catch(err => {
+        alert("Server error occurred!");
+        btn.innerHTML = 'Submit Report <i class="fa-solid fa-paper-plane ms-2"></i>';
+        btn.disabled = false;
+    });
+}
+</script>
+{% endblock %}

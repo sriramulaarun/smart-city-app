@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center pt-5 mb-5 align-items-center" style="min-height: 70vh;">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden animate-slide-up">
+            <div class="card-body p-5 position-relative">
+                <!-- Background decoration -->
+                <div class="position-absolute top-0 start-0 w-100 h-100 bg-light opacity-50 z-0"></div>
+                <div class="position-absolute align-items-center justify-content-center" style="top: -20px; right: -20px; opacity: 0.05; z-index: 0;">
+                    <i class="fa-solid fa-shield-halved fa-10x text-primary"></i>
+                </div>
+                
+                <div class="position-relative z-1">
+                    <div class="text-center mb-5">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 70px; height: 70px;">
+                            <i class="fa-solid fa-lock fs-2" id="authIcon"></i>
+                        </div>
+                        <h2 class="fw-bold text-dark mb-1" id="authTitle">Welcome Back</h2>
+                        <p class="text-muted" id="authSubtitle">Login to manage your community reports</p>
+                    </div>
+                    
+                    <div class="mb-4 animate-fade-in" id="nameGroup" style="display:none;">
+                        <label class="form-label fw-bold small text-secondary text-uppercase tracking-wide">Full Name</label>
+                        <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-user"></i></span>
+                            <input type="text" id="authName" class="form-control form-control-lg border-start-0 py-3" placeholder="John Doe">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary text-uppercase tracking-wide">Email Address</label>
+                        <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-envelope"></i></span>
+                            <input type="email" id="authEmail" class="form-control form-control-lg border-start-0 py-3" placeholder="name@example.com">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-5">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label fw-bold small text-secondary text-uppercase tracking-wide mb-0">Password</label>
+                            <a href="#" class="small text-primary text-decoration-none fw-medium" id="forgotPassLink">Forgot?</a>
+                        </div>
+                        <div class="input-group shadow-sm rounded-3 overflow-hidden mt-2">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fa-solid fa-key"></i></span>
+                            <input type="password" id="authPassword" class="form-control form-control-lg border-start-0 py-3" placeholder="••••••••">
+                        </div>
+                    </div>
+                    
+                    <button id="authButton" onclick="handleAuth()" class="btn btn-primary btn-lg w-100 fw-bold shadow-md py-3 rounded-pill mb-4 transition-all hover-scale">
+                        Sign In <i class="fa-solid fa-arrow-right-to-bracket ms-2"></i>
+                    </button>
+                    
+                    <div class="text-center">
+                        <p class="mb-0 text-secondary">
+                            <span id="toggleText">New to Community Hub?</span>
+                            <a href="#" onclick="toggleAuth()" class="text-primary fw-bold text-decoration-none ms-1 border-bottom border-primary pb-1">Create an account</a>
+                        </p>
+                    </div>
+                    
+                    <div id="authMsg" class="mt-4 text-center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let isLogin = true;
+
+function toggleAuth(){
+  isLogin = !isLogin;
+  let title = document.getElementById("authTitle");
+  let subtitle = document.getElementById("authSubtitle");
+  let nameGroup = document.getElementById("nameGroup");
+  let button = document.getElementById("authButton");
+  let text = document.getElementById("toggleText");
+  let icon = document.getElementById("authIcon");
+  let forgotLink = document.getElementById("forgotPassLink");
+
+  if(isLogin){
+    title.innerText = 'Welcome Back';
+    subtitle.innerText = "Login to manage your community reports";
+    nameGroup.style.display = "none";
+    button.innerHTML = 'Sign In <i class="fa-solid fa-arrow-right-to-bracket ms-2"></i>';
+    text.innerText = "New to Community Hub?";
+    document.querySelector("a[onclick='toggleAuth()']").innerText = "Create an account";
+    icon.className = "fa-solid fa-lock fs-2";
+    forgotLink.style.display = "block";
+  } else {
+    title.innerText = 'Join Us';
+    subtitle.innerText = "Create an account to track your impact";
+    nameGroup.style.display = "block";
+    button.innerHTML = 'Create Account <i class="fa-solid fa-user-plus ms-2"></i>';
+    text.innerText = "Already have an account?";
+    document.querySelector("a[onclick='toggleAuth()']").innerText = "Log in here";
+    icon.className = "fa-solid fa-user-plus fs-2";
+    forgotLink.style.display = "none";
+  }
+}
+
+function handleAuth(){
+  let name = document.getElementById("authName").value.trim();
+  let email = document.getElementById("authEmail").value.trim();
+  let password = document.getElementById("authPassword").value.trim();
+  let msg = document.getElementById("authMsg");
+  let btn = document.getElementById("authButton");
+
+  msg.innerHTML = '';
+
+  if(email === "" || password === ""){
+    msg.innerHTML = '<div class="alert alert-danger py-3 border-0 shadow-sm rounded-3"><i class="fa-solid fa-triangle-exclamation me-2"></i>Please fill all required fields</div>';
+    return;
+  }
+  if(!isLogin && name === ""){
+    msg.innerHTML = '<div class="alert alert-danger py-3 border-0 shadow-sm rounded-3"><i class="fa-solid fa-triangle-exclamation me-2"></i>We need your name to create an account</div>';
+    return;
+  }
+
+  // Animation effect
+  let originalBtnText = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-2"></i> Processing...';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    // REGISTER
+    if(!isLogin){
+        localStorage.setItem("userName", name);
+        localStorage.setItem("userEmail", email);
+        localStorage.setItem("userPassword", password);
+        msg.innerHTML = '<div class="alert alert-success py-3 border-0 shadow-sm rounded-3"><i class="fa-solid fa-check-circle me-2"></i>Account created! Switching to login...</div>';
+        setTimeout(()=>{ 
+            toggleAuth(); 
+            btn.innerHTML = originalBtnText;
+            btn.disabled = false;
+        }, 1500);
+    }
+    // LOGIN
+    else{
+        let savedEmail = localStorage.getItem("userEmail");
+        let savedPass = localStorage.getItem("userPassword");
+        if(email === savedEmail && password === savedPass){
+            msg.innerHTML = '<div class="alert alert-success py-3 border-0 shadow-sm rounded-3"><i class="fa-solid fa-shield-check me-2"></i>Authentication successful! Redirecting...</div>';
+            setTimeout(()=>{ window.location.href = "/profile"; }, 800);
+        } else {
+            msg.innerHTML = '<div class="alert alert-danger py-3 border-0 shadow-sm rounded-3"><i class="fa-solid fa-circle-xmark me-2"></i>Invalid Credentials. Please try again.</div>';
+            btn.innerHTML = originalBtnText;
+            btn.disabled = false;
+        }
+    }
+  }, 800);
+}
+
+document.getElementById("authPassword").addEventListener("keypress", function(e){
+  if(e.key === "Enter") handleAuth();
+});
+</script>
+
+<style>
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.transition-all { transition: all 0.3s ease; }
+.hover-scale:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(13, 110, 253, 0.3) !important; }
+</style>
+{% endblock %}

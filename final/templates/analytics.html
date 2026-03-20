@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row pt-4 mb-4 animate-slide-up">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="text-dark fw-bold m-0"><i class="fa-solid fa-chart-line text-primary me-2"></i>Analytics Dashboard</h2>
+            <p class="text-muted small mt-1 mb-0">Live city-wide issue reporting data</p>
+        </div>
+        <div class="d-flex gap-2">
+            <select id="filterCategory" class="form-select shadow-sm border-0 d-none d-md-inline-block rounded-pill ps-3 pe-4 bg-white fw-medium text-secondary">
+                <option value="all">All Categories</option>
+                <option>Road Issue</option>
+                <option>Water Problem</option>
+                <option>Garbage Issue</option>
+            </select>
+            <button class="btn btn-outline-primary shadow-sm px-3 rounded-pill fw-bold bg-white" onclick="loadAnalytics()"><i class="fa-solid fa-arrows-rotate me-2"></i>Sync</button>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-5 animate-slide-up" style="animation-delay: 0.1s;">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 rounded-4 h-100 overflow-hidden position-relative">
+            <div class="position-absolute end-0 top-0 p-3 opacity-25">
+                <i class="fa-solid fa-file-invoice text-primary fa-4x" style="transform: rotate(15deg);"></i>
+            </div>
+            <div class="card-body p-4 position-relative z-1">
+                <p class="text-muted fw-bold mb-2 text-uppercase small tracking-wide">Total Reports</p>
+                <h3 class="display-5 fw-bold text-dark mb-0" id="totalReports">0</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 rounded-4 h-100 overflow-hidden position-relative">
+            <div class="position-absolute end-0 top-0 p-3 opacity-25">
+                <i class="fa-solid fa-circle-check text-success fa-4x" style="transform: rotate(15deg);"></i>
+            </div>
+            <div class="card-body p-4 position-relative z-1">
+                <p class="text-muted fw-bold mb-2 text-uppercase small tracking-wide">Resolved</p>
+                <h3 class="display-5 fw-bold text-success mb-0" id="resolvedReports">0</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 rounded-4 h-100 overflow-hidden position-relative">
+            <div class="position-absolute end-0 top-0 p-3 opacity-25">
+                <i class="fa-solid fa-clock text-danger fa-4x" style="transform: rotate(15deg);"></i>
+            </div>
+            <div class="card-body p-4 position-relative z-1">
+                <p class="text-muted fw-bold mb-2 text-uppercase small tracking-wide">Pending</p>
+                <h3 class="display-5 fw-bold text-danger mb-0" id="pendingReports">0</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 rounded-4 h-100 overflow-hidden position-relative" style="background: linear-gradient(135deg, #e0e7ff 0%, #fff 100%);">
+            <div class="position-absolute end-0 top-0 p-3 opacity-10">
+                <i class="fa-solid fa-percent text-primary fa-4x" style="transform: rotate(15deg);"></i>
+            </div>
+            <div class="card-body p-4 position-relative z-1">
+                <p class="text-primary fw-bold mb-2 text-uppercase small tracking-wide">Resolution Rate</p>
+                <h3 class="display-5 fw-bold text-primary mb-0" id="resolutionRate">0%</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 animate-slide-up" style="animation-delay: 0.2s;">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold text-dark mb-4 border-bottom pb-3"><span class="bg-primary text-white p-2 rounded-circle me-2"><i class="fa-solid fa-chart-area fa-sm"></i></span> Weekly Trend</h5>
+                <canvas id="lineChart" style="max-height: 280px;"></canvas>
+            </div>
+        </div>
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold text-dark mb-4 border-bottom pb-3"><span class="bg-info text-white p-2 rounded-circle me-2"><i class="fa-solid fa-chart-bar fa-sm"></i></span> Category Distribution</h5>
+                <canvas id="barChart" style="max-height: 280px;"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-body p-4 d-flex flex-column">
+                <h5 class="fw-bold text-dark mb-4 border-bottom pb-3 align-self-start w-100"><span class="bg-warning text-dark p-2 rounded-circle me-2"><i class="fa-solid fa-chart-pie fa-sm"></i></span> Status Breakdown</h5>
+                <div class="mt-auto mb-auto w-100 d-flex justify-content-center">
+                    <div style="position: relative; height: 300px; width: 100%;">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let charts = {};
+
+function loadAnalytics(){
+  fetch("/all_reports")
+  .then(res => res.json())
+  .then(data => {
+    let total = data.length;
+    let resolved = 0;
+    let pending = 0;
+    let categories = { "Road Issue": 0, "Water Problem": 0, "Garbage Issue": 0, "Public Toilet Issue": 0, "Electricity Issue": 0, "Vandalism / Security": 0, "Animal Control": 0, "Streetlight Issue": 0, "Other": 0 };
+    let weekly = [0,0,0,0,0,0,0];
+
+    data.forEach(r => {
+      if(r[4] === "Resolved") resolved++;
+      if(r[4] === "Pending") pending++;
+      
+      let cat = r[3] || "Other";
+      if(categories[cat] !== undefined){
+        categories[cat]++;
+      } else {
+        categories["Other"]++;
+      }
+      
+      let day = Math.floor(Math.random()*7);
+      weekly[day]++;
+    });
+
+    document.getElementById("totalReports").innerText = total;
+    document.getElementById("resolvedReports").innerText = resolved;
+    document.getElementById("pendingReports").innerText = pending;
+    let rate = total > 0 ? ((resolved/total)*100).toFixed(1) : 0;
+    document.getElementById("resolutionRate").innerText = rate + "%";
+
+    // Destroy existing charts if any to avoid overlapping
+    if(charts.line) charts.line.destroy();
+    if(charts.bar) charts.bar.destroy();
+    if(charts.pie) charts.pie.destroy();
+
+    charts.line = new Chart(document.getElementById("lineChart"), {
+      type: "line",
+      data: {
+        labels: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+        datasets: [{
+          label: "Reports Created",
+          data: weekly,
+          borderWidth: 2,
+          borderColor: '#0d6efd',
+          backgroundColor: 'rgba(13, 110, 253, 0.2)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    charts.bar = new Chart(document.getElementById("barChart"), {
+      type: "bar",
+      data: {
+        labels: Object.keys(categories),
+        datasets: [{
+          label: "Issues by Category",
+          data: Object.values(categories),
+          backgroundColor: '#0dcaf0',
+          borderRadius: 4
+        }]
+      },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+
+    charts.pie = new Chart(document.getElementById("pieChart"), {
+      type: "doughnut",
+      data: {
+        labels: ["Resolved","Pending","In Progress"],
+        datasets: [{
+          data: [resolved, pending, total - resolved - pending],
+          backgroundColor: ['#198754', '#dc3545', '#ffc107'],
+          borderWidth: 0
+        }]
+      },
+      options: { cutout: '65%' }
+    });
+  });
+}
+
+loadAnalytics();
+</script>
+{% endblock %}

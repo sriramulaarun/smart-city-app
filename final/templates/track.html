@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center pt-5 mb-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-md border-0 rounded-lg p-4 p-md-5">
+            <div class="text-center mb-5 animate-slide-up">
+                <div class="icon-box mx-auto mb-3" style="width: 80px; height: 80px; border-radius: 20px; font-size: 36px;">
+                    <i class="fa-solid fa-magnifying-glass-location"></i>
+                </div>
+                <h2 class="text-dark fw-bold mb-2">Track Your Report</h2>
+                <p class="text-muted">Enter your Tracking ID to view real-time status updates.</p>
+            </div>
+            
+            <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden mb-4 animate-slide-up" style="animation-delay: 0.1s;">
+                <input type="text" id="trackInput" class="form-control border-0 bg-light px-4" placeholder="e.g., CH-123456" style="border-radius: 50rem 0 0 50rem !important;">
+                <button class="btn btn-primary px-4 fw-bold shadow-none" onclick="trackComplaint()" style="border-radius: 0 50rem 50rem 0 !important; border: none;">
+                    Track Issue <i class="fa-solid fa-arrow-right ms-2"></i>
+                </button>
+            </div>
+            
+            <div id="trackResult" class="mt-4 text-start animate-slide-up" style="animation-delay: 0.2s;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+function trackComplaint(){
+  let id = document.getElementById("trackInput").value.trim();
+  if(id === ""){
+    alert("Please enter a Tracking ID");
+    return;
+  }
+  
+  let result = document.getElementById("trackResult");
+  result.innerHTML = `<div class="text-center text-primary py-4"><i class="fa-solid fa-circle-notch fa-spin fa-3x"></i><p class="mt-3 text-muted fw-bold">Searching database...</p></div>`;
+
+  fetch("/track_report/" + id)
+  .then(res => res.json())
+  .then(data => {
+    if(data.error){
+      result.innerHTML = `
+        <div class="alert alert-danger mb-0 border-0 shadow-sm rounded-4 p-4 text-center">
+            <i class="fa-solid fa-circle-xmark fs-1 text-danger mb-3"></i>
+            <h5 class="fw-bold mb-1">Report Not Found</h5>
+            <p class="mb-0 text-muted">We couldn't track down ID: <strong>${id}</strong>. Please check your email and try again.</p>
+        </div>`;
+      return;
+    }
+
+    let statusColor = "bg-warning text-dark";
+    let icon = '<i class="fa-solid fa-clock"></i>';
+    if(data.status === "Resolved") { statusColor = "bg-success text-white"; icon = '<i class="fa-solid fa-check"></i>'; }
+    if(data.status === "Pending") { statusColor = "bg-danger text-white"; icon = '<i class="fa-solid fa-triangle-exclamation"></i>'; }
+
+    result.innerHTML = `
+      <div class="card bg-light border-0 shadow-sm rounded-4 mt-2 border-top border-4 border-primary">
+        <div class="card-body p-4 p-md-5">
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                <h5 class="fw-bold text-dark mb-0">Report Details</h5>
+                <span class="badge ${statusColor} px-3 py-2 fs-6 rounded-pill shadow-sm">${icon} ${data.status}</span>
+            </div>
+            
+            <div class="row g-4 mb-4">
+                <div class="col-sm-6">
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Tracking ID</p>
+                    <p class="text-dark fw-bold mb-0 fs-5">${data.id}</p>
+                </div>
+                <div class="col-sm-6">
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Category</p>
+                    <p class="text-dark fw-bold mb-0"><span class="badge bg-white text-dark border px-2 py-1 shadow-sm">${data.category}</span></p>
+                </div>
+                <div class="col-12">
+                    <p class="text-secondary small fw-bold text-uppercase mb-1">Location</p>
+                    <p class="text-dark mb-0"><i class="fa-solid fa-location-dot text-primary me-2"></i>${data.location}</p>
+                </div>
+            </div>
+            
+            <div class="p-4 bg-white rounded-4 shadow-sm border border-light">
+                <p class="text-secondary small fw-bold text-uppercase mb-2">Issue Description</p>
+                <p class="text-dark mb-0 lead" style="font-size: 1rem;">${data.description}</p>
+            </div>
+        </div>
+      </div>
+    `;
+  })
+  .catch(()=>{
+    result.innerHTML = `<div class="alert alert-danger p-4 text-center rounded-4 shadow-sm border-0"><i class="fa-solid fa-triangle-exclamation fs-1 text-danger mb-3"></i><h5 class="fw-bold">Connection Error</h5><p class="mb-0">Please check your internet and try again.</p></div>`;
+  });
+}
+
+document.getElementById("trackInput").addEventListener("keypress", function(e){
+  if(e.key === "Enter") trackComplaint();
+});
+</script>
+{% endblock %}

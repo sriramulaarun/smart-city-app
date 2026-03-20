@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center pt-5 mb-5 align-items-center" style="min-height: 70vh;">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden animate-slide-up">
+            <div class="card-body p-5 position-relative">
+                <!-- Background decoration -->
+                <div class="position-absolute align-items-center justify-content-center" style="bottom: -20px; left: -20px; opacity: 0.05; z-index: 0;">
+                    <i class="fa-solid fa-server fa-10x text-primary"></i>
+                </div>
+                
+                <div class="position-relative z-1">
+                    <div class="text-center mb-5">
+                        <div class="bg-dark text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-md" style="width: 70px; height: 70px;">
+                            <i class="fa-solid fa-shield-halved fs-2"></i>
+                        </div>
+                        <h2 class="fw-bold text-dark mb-1">Admin Portal</h2>
+                        <p class="text-muted">Enter credentials to access the city dashboard</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary text-uppercase tracking-wide">Username</label>
+                        <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                            <span class="input-group-text bg-light border-0 text-muted"><i class="fa-solid fa-user-shield"></i></span>
+                            <input type="text" id="adminUsername" class="form-control form-control-lg border-0 bg-light py-3" placeholder="admin">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-5">
+                        <label class="form-label fw-bold small text-secondary text-uppercase tracking-wide">Password</label>
+                        <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                            <span class="input-group-text bg-light border-0 text-muted"><i class="fa-solid fa-key"></i></span>
+                            <input type="password" id="adminPassword" class="form-control form-control-lg border-0 bg-light py-3" placeholder="••••••••">
+                        </div>
+                    </div>
+                    
+                    <button id="adminLoginBtn" onclick="adminLogin()" class="btn btn-dark btn-lg w-100 fw-bold shadow-md rounded-pill mb-3 py-3 transition-all hover-scale">
+                        Secure Login <i class="fa-solid fa-lock ms-2"></i>
+                    </button>
+                    
+                    <div id="adminLoginMsg" class="mt-4 text-center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function adminLogin(){
+  let username = document.getElementById("adminUsername").value.trim();
+  let password = document.getElementById("adminPassword").value.trim();
+  let msg = document.getElementById("adminLoginMsg");
+  let btn = document.getElementById("adminLoginBtn");
+
+  if(username === "" || password === ""){
+    msg.innerHTML = '<div class="alert alert-danger py-3 border-0 shadow-sm rounded-3"><i class="fa-solid fa-triangle-exclamation me-2"></i>Please fill all fields</div>';
+    return;
+  }
+
+  let originalText = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-2"></i> Authenticating...';
+  btn.disabled = true;
+
+  fetch('/admin-login', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({username: username, password: password})
+  })
+  .then(res => res.json())
+  .then(data => {
+      if(data.message) {
+          msg.innerHTML = '<div class="alert alert-success py-3 border-0 shadow-sm rounded-3"><i class="fa-solid fa-shield-check me-2"></i>Access Granted! Redirecting...</div>';
+          localStorage.setItem("admin", "true");
+          setTimeout(()=>{ window.location.href = "/admin/dashboard"; }, 800);
+      } else {
+          msg.innerHTML = '<div class="alert alert-danger py-3 border-0 shadow-sm rounded-3"><i class="fa-solid fa-circle-xmark me-2"></i>' + data.error + '</div>';
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+      }
+  }).catch(()=>{
+      msg.innerHTML = '<div class="alert alert-danger py-3 border-0 shadow-sm rounded-3"><i class="fa-solid fa-triangle-exclamation me-2"></i>Server Connection Error</div>';
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+  });
+}
+
+document.getElementById("adminPassword").addEventListener("keypress", function(e){
+  if(e.key === "Enter") adminLogin();
+});
+</script>
+
+<style>
+.transition-all { transition: all 0.3s ease; }
+.hover-scale:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(33, 37, 41, 0.2) !important; }
+.tracking-wide { letter-spacing: 0.05em; }
+</style>
+{% endblock %}

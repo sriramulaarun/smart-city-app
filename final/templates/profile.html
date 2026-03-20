@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row pt-4 mb-5 animate-slide-up">
+    <!-- Sidebar Profile Area -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-md border-0 rounded-4 text-center mb-4 overflow-hidden position-relative">
+            <div class="bg-primary pt-5 pb-3 px-4 position-relative" style="background: linear-gradient(135deg, var(--primary-color) 0%, #3b82f6 100%);">
+                <!-- Decorative pattern -->
+                <div class="position-absolute top-0 start-0 w-100 h-100 opacity-10" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 15px 15px;"></div>
+                
+                <div class="bg-white text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-lg position-relative z-1" style="width: 90px; height: 90px; border: 4px solid rgba(255,255,255,0.2);">
+                    <i class="fa-solid fa-user-astronaut fa-3x"></i>
+                </div>
+            </div>
+            <div class="card-body px-4 pt-2 pb-4">
+                <h4 class="fw-bold mb-1 text-dark" id="profileName">Loading...</h4>
+                <p class="text-secondary small mb-4" id="profileEmail">loading@email.com</p>
+                
+                <button onclick="logoutUser()" class="btn btn-outline-danger w-100 rounded-pill fw-bold transition-all hover-scale">
+                    <i class="fa-solid fa-arrow-right-from-bracket me-2"></i>Sign Out
+                </button>
+            </div>
+        </div>
+        
+        <!-- Impact Stats Area -->
+        <div class="card shadow-sm border-0 rounded-4 mb-4">
+            <div class="card-body p-4 text-center">
+                <h5 class="fw-bold text-dark mb-4 border-bottom pb-3"><i class="fa-solid fa-bolt text-warning me-2"></i>My Impact Settings</h5>
+                <div class="row g-3">
+                    <div class="col-4">
+                        <div class="p-2 rounded-3 bg-light">
+                            <h3 class="fw-bold text-primary mb-0" id="myTotal">0</h3>
+                            <small class="text-muted text-uppercase tracking-wide" style="font-size: 0.7rem;">Total</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 rounded-3" style="background-color: #ecfdf5;">
+                            <h3 class="fw-bold text-success mb-0" id="myResolved">0</h3>
+                            <small class="text-success text-uppercase tracking-wide" style="font-size: 0.7rem;">Resolved</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="p-2 rounded-3" style="background-color: #fef2f2;">
+                            <h3 class="fw-bold text-danger mb-0" id="myPending">0</h3>
+                            <small class="text-danger text-uppercase tracking-wide" style="font-size: 0.7rem;">Pending</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gamification Badge Area -->
+        <div class="card shadow-sm border-0 rounded-4 mb-4" style="background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);">
+            <div class="card-body p-4 text-center">
+                <h5 class="fw-bold text-dark mb-4 border-bottom pb-3"><i class="fa-solid fa-medal text-warning me-2"></i>Civic Badge</h5>
+                <div id="badgeIcon" class="mb-3 transition-all hover-scale">
+                    <i class="fa-solid fa-seedling fa-4x text-muted"></i>
+                </div>
+                <h4 id="badgeName" class="fw-bold text-primary mb-1">New Citizen</h4>
+                <p class="text-muted small mb-0"><span id="civicScore" class="fw-bold text-dark fs-5">0</span> Civic Points</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main History Area -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-body p-4 p-md-5">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                    <h4 class="card-title fw-bold mb-0 text-dark"><i class="fa-solid fa-list-check text-primary me-2"></i>History</h4>
+                    <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill"><i class="fa-solid fa-clock-rotate-left me-1"></i> Recent</span>
+                </div>
+                
+                <div id="myReportsList" class="pe-2" style="max-height: 500px; overflow-y: auto;">
+                    <div class="text-center py-5">
+                        <i class="fa-solid fa-circle-notch fa-spin fa-3x text-primary mb-3"></i>
+                        <p class="text-muted fw-bold">Fetching your history...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function loadProfile(){
+  let name = localStorage.getItem("userName");
+  let email = localStorage.getItem("userEmail");
+  
+  if(!name || !email){
+      alert("Please login first to view your profile.");
+      window.location.href = "/auth";
+      return;
+  }
+
+  document.getElementById("profileName").innerText = name;
+  document.getElementById("profileEmail").innerText = email;
+
+  fetch("/all_reports")
+  .then(res => res.json())
+  .then(data => {
+    // Filter by my email
+    let myReports = data.filter(r => r[5] === email);
+    // Sort reverse chronological
+    myReports.reverse();
+
+    let total = myReports.length;
+    let resolved = 0;
+    let pending = 0;
+
+    let container = document.getElementById("myReportsList");
+    container.innerHTML = "";
+
+    if(total === 0) {
+        container.innerHTML = `
+            <div class="text-center py-5 px-3 bg-light rounded-4 border border-dashed border-2">
+                <div class="bg-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm" style="width: 60px; height: 60px;">
+                    <i class="fa-solid fa-folder-open text-muted fs-4"></i>
+                </div>
+                <h5 class="fw-bold text-dark">No reports yet</h5>
+                <p class="text-muted mb-4">You haven't submitted any community issues.</p>
+                <a href="/report" class="btn btn-primary rounded-pill px-4 shadow-sm hover-scale transition-all">
+                    Create Report <i class="fa-solid fa-plus ms-2"></i>
+                </a>
+            </div>`;
+    }
+
+    myReports.forEach((r, idx) => {
+      // r is [id, description, location, category, status, email]
+      if(r[4] === "Resolved") resolved++;
+      if(r[4] === "Pending") pending++;
+
+      let badgeClass = "bg-warning text-dark";
+      let icon = "fa-clock";
+      if(r[4] === "Resolved") { badgeClass = "bg-success text-white"; icon = "fa-check"; }
+      if(r[4] === "Pending") { badgeClass = "bg-danger text-white"; icon = "fa-triangle-exclamation"; }
+      
+      let delay = idx * 0.05;
+
+      container.innerHTML += `
+        <div class="card bg-white border border-light shadow-sm rounded-4 mb-3 transition-all hover-scale" style="animation: slideUpFade 0.4s ease-out ${delay}s both;">
+            <div class="card-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="badge bg-light text-secondary border font-monospace tracking-wide px-2 me-2">#${r[0]}</span>
+                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary-subtle px-2">${r[3]}</span>
+                    </div>
+                    <span class="badge ${badgeClass} px-3 py-2 rounded-pill shadow-sm"><i class="fa-solid ${icon} me-1"></i> ${r[4]}</span>
+                </div>
+                <p class="mb-2 text-dark fs-6">${r[1]}</p>
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-light">
+                    <p class="mb-0 small text-muted"><i class="fa-solid fa-location-dot text-secondary me-1"></i> ${r[2]}</p>
+                    <a href="/track?id=${r[0]}" class="btn btn-sm btn-outline-primary rounded-pill">Track <i class="fa-solid fa-chevron-right ms-1"></i></a>
+                </div>
+            </div>
+        </div>
+      `;
+    });
+
+    // Animate stats
+    animateValue("myTotal", 0, total, 1000);
+    animateValue("myResolved", 0, resolved, 1000);
+    animateValue("myPending", 0, pending, 1000);
+
+    // Calculate Civic Score
+    let score = (total * 10) + (resolved * 50);
+    animateValue("civicScore", 0, score, 1500);
+
+    let bName = "New Citizen";
+    let bIcon = '<i class="fa-solid fa-seedling fa-4x text-success" style="filter: drop-shadow(0 4px 6px rgba(16, 185, 129, 0.3));"></i>';
+
+    if(score >= 50) {
+        bName = "Bronze Helper";
+        bIcon = '<i class="fa-solid fa-medal fa-4x" style="color: #cd7f32; filter: drop-shadow(0 4px 6px rgba(205, 127, 50, 0.4));"></i>';
+    }
+    if(score >= 150) {
+        bName = "Silver Civic Leader";
+        bIcon = '<i class="fa-solid fa-award fa-4x" style="color: #94a3b8; filter: drop-shadow(0 4px 6px rgba(148, 163, 184, 0.4));"></i>';
+    }
+    if(score >= 300) {
+        bName = "Gold City Hero";
+        bIcon = '<i class="fa-solid fa-trophy fa-4x" style="color: #fbbf24; filter: drop-shadow(0 4px 6px rgba(251, 191, 36, 0.5));"></i>';
+    }
+    document.getElementById("badgeName").innerText = bName;
+    document.getElementById("badgeIcon").innerHTML = bIcon;
+  });
+}
+
+function animateValue(id, start, end, duration) {
+    if (start === end) return;
+    let range = end - start;
+    let current = start;
+    let increment = end > start ? 1 : -1;
+    let stepTime = Math.abs(Math.floor(duration / range));
+    let obj = document.getElementById(id);
+    let timer = setInterval(function() {
+        current += increment;
+        obj.innerHTML = current;
+        if (current == end) {
+            clearInterval(timer);
+        }
+    }, stepTime);
+}
+
+function logoutUser(){
+  localStorage.clear();
+  window.location.href = "/";
+}
+
+loadProfile();
+</script>
+<style>
+@keyframes slideUpFade {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.transition-all { transition: all 0.3s ease; }
+.hover-scale:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important; border-color: rgba(13, 110, 253, 0.2) !important; }
+.tracking-wide { letter-spacing: 0.05em; }
+/* Custom scrollbar for reports list */
+#myReportsList::-webkit-scrollbar { width: 6px; }
+#myReportsList::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
+#myReportsList::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+#myReportsList::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+</style>
+{% endblock %}
