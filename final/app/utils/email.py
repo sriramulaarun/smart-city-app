@@ -9,8 +9,8 @@ def send_confirmation_email(to_address, tracking_id):
     if not to_address:
         return
         
-    smtp_email = current_app.config.get("sriramulaarun249@gmail.com")
-    smtp_pass = current_app.config.get("sydb flnk mplw lnei")
+    smtp_email = current_app.config.get("SMTP_EMAIL")
+    smtp_pass = current_app.config.get("SMTP_PASSWORD")
     
     msg = EmailMessage()
     msg['Subject'] = f'Problem Report Received - Tracking ID: {tracking_id}'
