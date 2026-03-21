@@ -1,23 +1,5 @@
 // ================= REPORT =================
-function submitReport(){
-
-let data={
-description:document.getElementById("problemDesc").value,
-location:document.getElementById("problemLocation").value,
-category:document.getElementById("problemCategory").value
-};
-
-fetch("/submit_report",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify(data)
-})
-.then(res=>res.json())
-.then(data=>{
-alert("Tracking ID: "+data.id);
-});
-}
-
+// Note: submitReport() is handled directly inside report.html to manage the specific UI state there.
 // ================= TRACK =================
 function trackComplaint(){
 
